@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:toko_ku/login.dart';
+import 'package:toko_ku/log.dart';
 
 void main() {
   runApp(const MainApp());
@@ -12,7 +12,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      home: SplashPage(),
     );
   }
 }
