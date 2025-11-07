@@ -8,10 +8,10 @@ class BerandaPage extends StatelessWidget {
   }
 }
 
-class TokoPage extends StatelessWidget {
+class ProdukPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('Halaman Toko', style: TextStyle(fontSize: 24)));
+    return Center(child: Text('Halaman Produk', style: TextStyle(fontSize: 24)));
   }
 }
 
@@ -19,13 +19,6 @@ class CariPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Halaman Cari', style: TextStyle(fontSize: 24)));
-  }
-}
-
-class ProdukPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Halaman Produk', style: TextStyle(fontSize: 24)));
   }
 }
 
@@ -49,9 +42,8 @@ class _HomePageState extends State<HomePage> {
   // List halaman untuk switch
   final List<Widget> _pages = [
     BerandaPage(),
-    TokoPage(),
-    CariPage(),
     ProdukPage(),
+    CariPage(),
     ProfilePage(),
   ];
 
@@ -72,16 +64,12 @@ class _HomePageState extends State<HomePage> {
             label: 'Beranda',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.store),
-            label: 'Toko',
+            icon: Icon(Icons.inventory),
+            label: 'Produk',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
             label: 'Cari',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Produk',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
