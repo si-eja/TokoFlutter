@@ -93,7 +93,7 @@ class _RegistPageState extends State<RegistPage> {
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
-                      labelText: 'Email',
+                      labelText: 'Username',
                       labelStyle: TextStyle(color: Colors.white),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
@@ -106,10 +106,7 @@ class _RegistPageState extends State<RegistPage> {
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Masukkan email';
-                      }
-                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                        return 'Masukkan email yang valid';
+                        return 'Masukkan username';
                       }
                       return null;
                     },
@@ -138,6 +135,18 @@ class _RegistPageState extends State<RegistPage> {
                       }
                       return null;
                     },
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                        },
+                        child: const Text('Sudah punya akun! Kembali', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],  
                   ),
                   SizedBox(height: 40),
                   ElevatedButton(

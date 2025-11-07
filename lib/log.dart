@@ -43,8 +43,8 @@ class _SplashPageState extends State<SplashPage> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.black, Colors.blueAccent.shade700], // Hitam gradasi ke biru neon
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.bottomCenter,
+            end: Alignment.topRight,
           ),
         ),
         child: Center(
@@ -59,16 +59,16 @@ class _SplashPageState extends State<SplashPage> {
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent, // Warna biru neon
+                    color: Colors.white, // Warna biru neon
                     shadows: [
                       Shadow(
                         blurRadius: 10.0,
-                        color: Colors.white, // Glow putih untuk efek neon
+                        color: Colors.blue, // Glow putih untuk efek neon
                         offset: Offset(0, 0),
                       ),
                       Shadow(
                         blurRadius: 20.0,
-                        color: Colors.blueAccent.shade400, // Glow biru tambahan
+                        color: Colors.black, // Glow biru tambahan
                         offset: Offset(0, 0),
                       ),
                     ],

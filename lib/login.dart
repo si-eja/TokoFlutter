@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:toko_ku/Home.dart';
 import 'package:toko_ku/register.dart';
 
 class LoginPage extends StatefulWidget {
@@ -45,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
-                      labelText: 'Email',
+                      labelText: 'Username',
                       labelStyle: TextStyle(color: Colors.white),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
@@ -57,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
                     style: const TextStyle(color: Colors.white),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Masukkan email';
+                        return 'Masukkan username';
                       }
                       return null;
                     },
@@ -112,6 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         // Logika login di sini (misalnya, panggil API)
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomePage()), (route) => false);
                         ScaffoldMessenger.of(context).showSnackBar(
                          const SnackBar(content: Text('Login berhasil!')),
                         );
