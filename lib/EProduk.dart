@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import '../api.service.dart';
 
 class ProductEdit extends StatefulWidget {
-  final Map<String, dynamic> product;
-  const ProductEdit({super.key, required this.product});
+  final Map<String, dynamic> editData;
+
+  const ProductEdit({super.key, required this.editData});
 
   @override
   State<ProductEdit> createState() => _ProductEditState();
@@ -11,83 +12,206 @@ class ProductEdit extends StatefulWidget {
 
 class _ProductEditState extends State<ProductEdit> {
   final ApiService api = ApiService();
-  final _formKey = GlobalKey<FormState>();
 
-  late int selectedCategory;
-  late TextEditingController nameCtrl;
-  late TextEditingController priceCtrl;
-  late TextEditingController stockCtrl;
-  late TextEditingController descCtrl;
+  final TextEditingController namaCtrl = TextEditingController();
+  final TextEditingController hargaCtrl = TextEditingController();
+  final TextEditingController stokCtrl = TextEditingController();
+  final TextEditingController deskripsiCtrl = TextEditingController();
 
-  bool isSaving = false;
+  bool loading = false;
+  List categories = [];
+  int? selectedKategori;
 
   @override
   void initState() {
     super.initState();
-    final p = widget.product;
-    selectedCategory = int.tryParse(p['id_kategori']?.toString() ?? '0') ?? 0;
-    nameCtrl = TextEditingController(text: p['nama_produk'] ?? '');
-    priceCtrl = TextEditingController(text: p['harga']?.toString() ?? '');
-    stockCtrl = TextEditingController(text: p['stok']?.toString() ?? '');
-    descCtrl = TextEditingController(text: p['deskripsi'] ?? '');
+    loadInitialData();
   }
 
-  void doUpdate() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(()=> isSaving = true);
+  void loadInitialData() async {
+    namaCtrl.text = widget.editData["nama_produk"] ?? "";
+    hargaCtrl.text = widget.editData["harga"]?.toString() ?? "";
+    stokCtrl.text = widget.editData["stok"]?.toString() ?? "";
+    deskripsiCtrl.text = widget.editData["deskripsi"] ?? "";
+
+    selectedKategori = int.tryParse(widget.editData["id_kategori"].toString());
+
+    categories = await api.getCategories();
+    setState(() {});
+  }
+
+  Future<void> saveEdit() async {
+    if (selectedKategori == null ||
+        namaCtrl.text.isEmpty ||
+        hargaCtrl.text.isEmpty ||
+        stokCtrl.text.isEmpty ||
+        deskripsiCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Semua field harus diisi")));
+      return;
+    }
+
+    setState(() => loading = true);
 
     final res = await api.saveProduct(
-      idProduk: int.tryParse(widget.product['id_produk'].toString()),
-      idKategori: selectedCategory,
-      namaProduk: nameCtrl.text.trim(),
-      harga: int.tryParse(priceCtrl.text.trim()) ?? 0,
-      stok: int.tryParse(stockCtrl.text.trim()) ?? 0,
-      deskripsi: descCtrl.text.trim(),
+      idProduk: widget.editData["id_produk"],
+      idKategori: selectedKategori!,
+      namaProduk: namaCtrl.text,
+      harga: int.tryParse(hargaCtrl.text) ?? 0,
+      stok: int.tryParse(stokCtrl.text) ?? 0,
+      deskripsi: deskripsiCtrl.text,
     );
 
-    setState(()=> isSaving = false);
+    setState(() => loading = false);
 
-    if (res['success'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Produk berhasil diupdate')));
-      Navigator.pop(context, true); // kembali ke detail
+    if (res["success"] == true) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Produk berhasil diperbarui")));
+      Navigator.pop(context, true);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Gagal update')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(res["message"] ?? "Gagal menyimpan perubahan")),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Produk')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              DropdownButtonFormField<int>(
-                decoration: const InputDecoration(labelText: 'Kategori'),
-                items: const [
-                  DropdownMenuItem(value: 1, child: Text('Elektronik')),
-                  DropdownMenuItem(value: 3, child: Text('Seragam')),
-                  DropdownMenuItem(value: 4, child: Text('ATK')),
-                  DropdownMenuItem(value: 7, child: Text('Hardware')),
-                ],
-                value: selectedCategory == 0 ? null : selectedCategory,
-                onChanged: (v) => setState(()=> selectedCategory = v ?? selectedCategory),
-                validator: (v) => v == null ? 'Pilih kategori' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Nama Produk'), validator: (v)=> v==null||v.isEmpty? 'Masukkan nama':null),
-              const SizedBox(height: 12),
-              TextFormField(controller: priceCtrl, decoration: const InputDecoration(labelText: 'Harga'), keyboardType: TextInputType.number, validator: (v)=> v==null||v.isEmpty? 'Masukkan harga':null),
-              const SizedBox(height: 12),
-              TextFormField(controller: stockCtrl, decoration: const InputDecoration(labelText: 'Stok'), keyboardType: TextInputType.number, validator: (v)=> v==null||v.isEmpty? 'Masukkan stok':null),
-              const SizedBox(height: 12),
-              TextFormField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Deskripsi'), maxLines: 5, validator: (v)=> v==null||v.isEmpty? 'Masukkan deskripsi':null),
-              const SizedBox(height: 20),
-              isSaving ? const CircularProgressIndicator() : ElevatedButton(onPressed: doUpdate, child: const Text('Update Produk')),
-            ],
+      backgroundColor: const Color(0xffF5F3F7),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: IconThemeData(color: Colors.black87),
+        title: const Text(
+          "Edit Produk",
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: loading
+          ? Center(child: CircularProgressIndicator())
+          : categories.isEmpty
+              ? Center(child: Text("Memuat kategori..."))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _label("Kategori"),
+                      const SizedBox(height: 6),
+
+                      _dropdownKategori(),
+
+                      const SizedBox(height: 20),
+
+                      _label("Nama Produk"),
+                      _input(namaCtrl),
+
+                      const SizedBox(height: 20),
+
+                      _label("Harga"),
+                      _input(hargaCtrl, number: true),
+
+                      const SizedBox(height: 20),
+
+                      _label("Stok"),
+                      _input(stokCtrl, number: true),
+
+                      const SizedBox(height: 20),
+
+                      _label("Deskripsi"),
+                      _input(deskripsiCtrl, maxLines: 5),
+
+                      const SizedBox(height: 30),
+
+                      _buttonSimpan(),
+                    ],
+                  ),
+                ),
+    );
+  }
+
+  Widget _label(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  Widget _dropdownKategori() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.black26),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: selectedKategori,
+          items: categories.map<DropdownMenuItem<int>>((cat) {
+            return DropdownMenuItem(
+              value: cat["id_kategori"],
+              child: Text(cat["nama_kategori"]),
+            );
+          }).toList(),
+          onChanged: (v) => setState(() => selectedKategori = v),
+        ),
+      ),
+    );
+  }
+
+  Widget _input(TextEditingController c,
+      {bool number = false, int maxLines = 1}) {
+    return TextField(
+      controller: c,
+      maxLines: maxLines,
+      keyboardType: number ? TextInputType.number : TextInputType.text,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.black26),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.black26),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.blueAccent, width: 1.3),
+        ),
+      ),
+    );
+  }
+
+  Widget _buttonSimpan() {
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton(
+        onPressed: saveEdit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blueAccent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: Text(
+          "Simpan Perubahan",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
       ),

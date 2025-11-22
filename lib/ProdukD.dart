@@ -162,19 +162,6 @@ class _ProductDetailState extends State<ProductDetail> {
               ),
             ),
             const SizedBox(height: 30),
-            // JIKA PRODUK MILIK USER → TAMPILKAN HAPUS
-            if (widget.isMyProduct)
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                onPressed: deleteProduct,
-                child: Text("Hapus Produk"),
-              ),
           ],
         ),
       ),

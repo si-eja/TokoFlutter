@@ -16,7 +16,24 @@ class ProductCreate extends StatefulWidget {
 class _ProductCreateState extends State<ProductCreate> {
   final ApiService api = ApiService();
   final _formKey = GlobalKey<FormState>();
-
+  Widget _input(TextEditingController c,
+    {bool number = false, int maxLines = 1}) {
+      return TextFormField(
+        controller: c,
+        maxLines: maxLines,
+        keyboardType: number ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        validator: (v) => v == null || v.isEmpty ? "Tidak boleh kosong" : null,
+      );
+    }
   // controllers
   int? selectedCategory;
   final TextEditingController nameCtrl = TextEditingController();
@@ -80,14 +97,6 @@ class _ProductCreateState extends State<ProductCreate> {
           res['id_produk'];
 
       if (idProduk != null) {
-        // 2 — Upload foto satu per satu
-        for (final img in images) {
-          await api.uploadProductImage(
-            idProduk: int.parse(idProduk.toString()),
-            imageFile: img,
-          );
-        }
-
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Produk berhasil ditambah")));
 
@@ -141,171 +150,139 @@ class _ProductCreateState extends State<ProductCreate> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Tambah Produk"),
         backgroundColor: Colors.transparent,
+        foregroundColor: Colors.blueAccent,
         elevation: 0,
       ),
 
       // === GRADIENT CYBER ===
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.blueAccent.shade700,
-              Colors.black,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DropdownButtonFormField<int>(
-                  value: kategori,
-                  decoration: const InputDecoration(labelText: "Kategori"),
-                  items: categories.map<DropdownMenuItem<int>>((cat) {
-                    return DropdownMenuItem<int>(
-                      value: cat["id_kategori"],
-                      child: Text(cat["nama_kategori"]),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      kategori = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Pilih kategori terlebih dahulu';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                // === INPUT-FIELD ===
-                buildInput("Nama Produk", nameCtrl),
-                buildInput("Harga", priceCtrl, isNumber: true),
-                buildInput("Stok", stockCtrl, isNumber: true),
-                // === DESKRIPSI ===
-                const Text("Deskripsi",
-                    style: TextStyle(color: Colors.white70)),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: TextFormField(
-                    controller: descCtrl,
-                    maxLines: 5,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      hintText: "Masukkan Deskripsi",
-                      hintStyle: TextStyle(color: Colors.white38),
-                      border: InputBorder.none,
+      body: SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  )
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Tambah Produk",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? "Masukkan deskripsi" : null,
                   ),
-                ),
-                const SizedBox(height: 20),
-                // === GAMBAR PRODUK ===
-                const Text("Gambar Produk",
-                    style: TextStyle(color: Colors.white70)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    ...images.map((file) {
-                      return Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: kIsWeb
-                                ? Image.network(
-                                    file.path,
-                                    width: 90,
-                                    height: 90,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.file(
-                                    file,
-                                    width: 90,
-                                    height: 90,
-                                    fit: BoxFit.cover,
-                                  ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: GestureDetector(
-                              onTap: () =>
-                                  setState(() => images.remove(file)),
-                              child: Container(
-                                color: Colors.black54,
-                                child: const Icon(Icons.close,
-                                    color: Colors.white, size: 18),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
-                    // button tambah foto
-                    GestureDetector(
-                      onTap: pickImages,
-                      child: Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.10),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white30),
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.add_a_photo,
-                              color: Colors.white70, size: 28),
-                        ),
+                  const SizedBox(height: 20),
+
+                  Text("Kategori",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, color: Colors.black87)),
+                  const SizedBox(height: 6),
+
+                  DropdownButtonFormField<int>(
+                    value: kategori,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                // === BUTTON SIMPAN ===
-                Center(
-                  child: isSaving
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : ElevatedButton(
-                          onPressed: doSave,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent.shade400,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 40, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: const Text("Simpan Produk",
-                              style: TextStyle(fontSize: 16)),
-                        ),
-                ),
-              ],
+                    items: categories.map<DropdownMenuItem<int>>((cat) {
+                      return DropdownMenuItem(
+                        value: cat["id_kategori"],
+                        child: Text(cat["nama_kategori"]),
+                      );
+                    }).toList(),
+                    onChanged: (v) => setState(() => kategori = v),
+                    validator: (v) =>
+                        v == null ? "Pilih kategori" : null,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Input
+                  Text("Nama Produk",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, color: Colors.black87)),
+                  const SizedBox(height: 6),
+                  _input(nameCtrl),
+
+                  const SizedBox(height: 12),
+
+                  Text("Harga",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, color: Colors.black87)),
+                  const SizedBox(height: 6),
+                  _input(priceCtrl, number: true),
+
+                  const SizedBox(height: 12),
+
+                  Text("Stok",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, color: Colors.black87)),
+                  const SizedBox(height: 6),
+                  _input(stockCtrl, number: true),
+
+                  const SizedBox(height: 12),
+
+                  Text("Deskripsi",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, color: Colors.black87)),
+                  const SizedBox(height: 6),
+                  _input(descCtrl, maxLines: 5),
+                ],
+              ),
             ),
-          ),
+
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                onPressed: isSaving ? null : doSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: isSaving
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        "Simpan Produk",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ),
+          ],
         ),
       ),
+    )
     );
   }
 }

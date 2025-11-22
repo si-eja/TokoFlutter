@@ -211,42 +211,16 @@ class ApiService {
     }
   }
 
-  // -----------------------------
-  // UPLOAD GAMBAR PRODUK (dipakai saat CREATE)
-  // POST /products/images/upload (multipart/form-data)
-  // field: file (image), id_produk (string/int)
-  // -----------------------------
   Future<Map<String, dynamic>> uploadProductImage({
-    required int idProduk,
-    required File imageFile,
+  required int idProduk,
   }) async {
-    final token = await _getToken();
-    final uri = Uri.parse("$baseUrl/products/images/upload");
-
-    try {
-      final request = http.MultipartRequest('POST', uri);
-      if (token != null) request.headers['Authorization'] = 'Bearer $token';
-
-      // tambahkan fields
-      request.fields['id_produk'] = idProduk.toString();
-
-      // tambahkan file
-      final mimeType = lookupMimeType(imageFile.path) ?? 'image/jpeg';
-      final multipartFile = await http.MultipartFile.fromPath(
-        'file', // sesuai nama field di server; cek server kalau beda ganti di sini
-        imageFile.path,
-        contentType: MediaType.parse(mimeType),
-      );
-
-      request.files.add(multipartFile);
-
-      final streamedResponse = await request.send();
-      final res = await http.Response.fromStream(streamedResponse);
-
-      return jsonDecode(res.body);
-    } catch (e) {
-      return {"success": false, "message": "Gagal upload gambar: $e"};
-    }
+    // Karena tidak ada upload gambar,
+    // kita langsung return success.
+    return {
+      "success": true,
+      "message": "Upload gambar dimatikan (no-file mode)",
+      "id_produk": idProduk
+    };
   }
 
   // -----------------------------
@@ -257,14 +231,19 @@ class ApiService {
     final token = await _getToken();
     final url = Uri.parse("$baseUrl/products/$idProduk/delete");
 
+    print("DELETE URL = $url");
+    print("TOKEN = $token");
+
     try {
       final res = await http.post(
         url,
         headers: {
-          if (token != null) "Authorization": "Bearer $token",
+          "Authorization": "Bearer $token",
           "Content-Type": "application/json",
         },
       );
+
+      print("DELETE RESPONSE: ${res.body}");
 
       return jsonDecode(res.body);
     } catch (e) {
