@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:toko_ku/AProduk.dart';
 import 'package:toko_ku/EProduk.dart';
 import '../api.service.dart';
-import 'ProdukD.dart'; // detail produk
 
 class ProdukPage extends StatefulWidget {
   const ProdukPage({super.key});

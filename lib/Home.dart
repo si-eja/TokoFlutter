@@ -2,14 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:toko_ku/Home(api).dart';
 import 'package:toko_ku/Produk.dart';
 import 'package:toko_ku/Profile.dart';
-
-// Placeholder class untuk setiap halaman
-class TokoPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Halaman Toko', style: TextStyle(fontSize: 24)));
-  }
-}
+import 'package:toko_ku/toko.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

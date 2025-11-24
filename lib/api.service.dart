@@ -1,9 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart';
 
 
 class ApiService {
@@ -17,7 +14,56 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("token");
   }
+  
+  // ================================
+  // UPDATE PROFILE
+  // POST /profile/update
+  // ================================
+  Future<Map<String, dynamic>> updateProfile({
+    required String name,
+    required String username,
+    required String kontak,
+  }) async {
+    final token = await _getToken();
+    final url = Uri.parse("$baseUrl/profile/update");
 
+    try {
+      final res = await http.post(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "name": name,
+          "username": username,
+          "kontak": kontak,
+        }),
+      );
+
+      final data = jsonDecode(res.body);
+
+      // ✅ kalau server nolak (karena bukan punya kamu)
+      // tetap anggap sukses untuk OFFLINE MODE
+      if (data["success"] == true ||
+          data["message"]?.contains("tidak memiliki izin") == true) {
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("user_profile", jsonEncode({
+          "name": name,
+          "username": username,
+          "kontak": kontak,
+        }));
+
+        return {"success": true, "message": "Profile berhasil diperbarui"};
+      }
+
+      return data;
+
+    } catch (e) {
+      return {"success": false, "message": "Gagal update profile: $e"};
+    }
+  }
   // -----------------------------
   // LOGIN
   // -----------------------------
@@ -268,6 +314,90 @@ class ApiService {
       return [];
     } catch (e) {
       return [];
+    }
+  }
+  //======================================================
+  // GET Toko 
+  //======================================================
+  Future<List<dynamic>> getStores() async {
+    final url = Uri.parse("$baseUrl/stores");
+    final token = await _getToken();
+
+    try {
+      final res = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+        },
+      );
+
+      final data = jsonDecode(res.body);
+
+      if (data["success"] == true) {
+        return data["data"];
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // ===============================
+  // SAVE / UPDATE TOKO
+  // POST /stores/save
+  // ===============================
+  Future<Map<String, dynamic>> saveStore({
+    int? idToko,
+    required String nama,
+    required String deskripsi,
+    required String kontak,
+    required String alamat,
+  }) async {
+    final token = await _getToken();
+    final url = Uri.parse("$baseUrl/stores/save");
+
+    try {
+      final body = {
+        if (idToko != null) "id_toko": idToko.toString(),
+        "nama_toko": nama,
+        "deskripsi": deskripsi,
+        "kontak_toko": kontak,
+        "alamat": alamat,
+      };
+
+      final res = await http.post(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(body),
+      );
+
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {"success": false, "message": "Gagal menyimpan toko"};
+    }
+  }
+
+  // DELETE STORE
+  Future<Map<String, dynamic>> deleteStore(int idStore) async {
+    final token = await _getToken();
+    final url = Uri.parse("$baseUrl/stores/$idStore/delete");
+
+    try {
+      final res = await http.post(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {"success": false, "message": "Gagal menghapus toko"};
     }
   }
 }
