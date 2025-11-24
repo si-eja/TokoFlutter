@@ -15,55 +15,6 @@ class ApiService {
     return prefs.getString("token");
   }
   
-  // ================================
-  // UPDATE PROFILE
-  // POST /profile/update
-  // ================================
-  Future<Map<String, dynamic>> updateProfile({
-    required String name,
-    required String username,
-    required String kontak,
-  }) async {
-    final token = await _getToken();
-    final url = Uri.parse("$baseUrl/profile/update");
-
-    try {
-      final res = await http.post(
-        url,
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode({
-          "name": name,
-          "username": username,
-          "kontak": kontak,
-        }),
-      );
-
-      final data = jsonDecode(res.body);
-
-      // ✅ kalau server nolak (karena bukan punya kamu)
-      // tetap anggap sukses untuk OFFLINE MODE
-      if (data["success"] == true ||
-          data["message"]?.contains("tidak memiliki izin") == true) {
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString("user_profile", jsonEncode({
-          "name": name,
-          "username": username,
-          "kontak": kontak,
-        }));
-
-        return {"success": true, "message": "Profile berhasil diperbarui"};
-      }
-
-      return data;
-
-    } catch (e) {
-      return {"success": false, "message": "Gagal update profile: $e"};
-    }
-  }
   // -----------------------------
   // LOGIN
   // -----------------------------
@@ -97,7 +48,34 @@ class ApiService {
       };
     }
   }
+  Future<Map<String, dynamic>> updateProfile(
+    String nama, String username, String kontak) async {
+    final token = await _getToken();
+    final url = Uri.parse("$baseUrl/profile/update");
 
+    try {
+      final res = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "nama": nama,
+          "username": username,
+          "kontak": kontak
+        }),
+      );
+
+      return jsonDecode(res.body);
+
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Gagal koneksi ke server"
+      };
+    }
+  }
   // -----------------------------
   // REGISTER
   // -----------------------------
